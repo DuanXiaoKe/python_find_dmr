@@ -85,7 +85,7 @@
 
 
 
-输入文件格式：（另一个格式相同）
+输入文件格式：（另一个输入文件格式相同）
 
 ![](https://i.imgur.com/YF4FqRm.jpg)
 
@@ -96,8 +96,7 @@
 
 ![](https://i.imgur.com/5RDIRx7.jpg)
 
-- 
-- 
+
 
 
 - 4.python3 ChrBinFindDmr_v.py -h
