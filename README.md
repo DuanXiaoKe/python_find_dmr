@@ -1,8 +1,6 @@
 # python_find_dmr
 
 
-
-
 - 这些脚本是用来求拟南芥野生型和突变体差异甲基化区域的。
 
 
@@ -33,11 +31,11 @@
 
 
 	
-	python3 Calchrlength_v.py Chr1 Chr2 Chr3 Chr4 Chr5 TAIR10_chr1.fa TAIR10_chr2.fa TAIR10_chr3.fa TAIR10_chr4.fa TAIR10_chr5.fa arabin.txt
+	python3 Calchrlength_v.py Chr1 Chr2 Chr3 Chr4 Chr5 TAIR10_chr1.fa TAIR10_chr2.fa TAIR10_chr3.fa TAIR10_chr4.fa TAIR10_chr5.fa arabid_chr_length.txt
 
 	python3 ChrBin_v.py --chrlenfile arabid_chr_length.txt  --bin 1000 --step 500 -o arabin.txt
 
-	python3 CombineBisGenome_v.py --fn1 col0_Chr1_genome --fn2 linc3-7_Chr1_genome -o col0_lin3-7_Chr1.txt
+	python3 CombineBisGenome_v.py --fn1 col0_Chr1_1000row_genome --fn2 linc3-7_Chr1_1000row_genome -o col0_lin3-7_Chr1.txt
 
     python3 ChrBinFindDmr_v.py --fn1 col0_lin3-7_Chr1.txt --fn2 arabin.txt --Ctype CG --depth 4 --mCnum 5 --diff 0.3 --pval 0.01 -o col0_linc3-7_Chr1_CG_DMR
 
@@ -48,15 +46,14 @@
 
 
 
-- 输入文件格式：
+输入文件格式：
 
 ![](https://i.imgur.com/HO56I6j.jpg)
 
 
 
 
-
-- 输出文件格式：
+ 输出文件格式：
 
 ![](https://i.imgur.com/feItr5V.jpg)
 
@@ -69,13 +66,13 @@
 
 
 
-- 输入文件格式：
+输入文件格式：
 
 ![](https://i.imgur.com/84N7u1K.jpg)
 
 
 
-- 输出文件格式：
+输出文件格式：
 
 ![](https://i.imgur.com/wXIdECC.jpg)
 
@@ -88,14 +85,14 @@
 
 
 
-- 输入文件格式：（另一个格式相同）
+输入文件格式：（另一个格式相同）
 
 ![](https://i.imgur.com/YF4FqRm.jpg)
 
 
 
 
-- 输出文件格式：
+ 输出文件格式：
 
 ![](https://i.imgur.com/5RDIRx7.jpg)
 
@@ -107,7 +104,7 @@
 
 
 
-- 输入文件格式如下：
+输入文件格式如下：
 
 ![](https://i.imgur.com/zquSztw.jpg)
 
@@ -115,9 +112,11 @@
 
 
 
-- 输出文件格式如下：
+输出文件格式如下：
 
 
 染色体		起始区间		结束区间		1甲基化水平		2甲基化水平		甲基化水平差值	P值		
 
 ![](https://i.imgur.com/K5oVBzp.jpg)
+
+
