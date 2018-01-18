@@ -7,7 +7,7 @@
 
 - 使用这些脚本需要知道：
 
-程序都需要python3环境，程序需要安装biopyton,可以用pip或者conda来安装。
+程序都需要python3环境，程序需要安装biopyton，可以用pip或者conda来安装。
 
 （拟南芥5条染色体fa文件、2个表型甲基化位点文件都在testdata存放）
 
