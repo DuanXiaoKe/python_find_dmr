@@ -1,0 +1,130 @@
+
+"""
+Created on Fri Jan 19 11:19:20 2018
+Aim: A simple Snakemake workflow to process single-end stranded RNA-Seq for Arabidopsis thaliana(TAIR10).
+Run: snakemake -s RNAseqSnakemake   
+@author: DXKE
+"""
+
+
+## Working directory                             
+## modified to meet your needs                 
+
+BASE_DIR = "/gss1/home/xiaoke/RNA-seq"
+WDIR = BASE_DIR + "/snake"
+workdir: WDIR
+message("The current working directory is " + WDIR)
+
+
+## Variables declaration 
+## modified to meet your needs
+
+GENOME = BASE_DIR + "/genome/TAIR10.fa"
+GFF   = BASE_DIR + "/annotation/TAIR10_GFF3_genes_transposons.gff"
+
+## The list of samples to be processed
+
+SAMPLES, = glob_wildcards("rawdata/{smp}.sra")
+
+#for smp in SAMPLES:
+    #message("Sample " + smp + " will be processed")
+
+
+rule all: 
+    input: expand("rawdata/{smp}_trimmed.fastq", smp=SAMPLES)
+
+rule convert:
+    input: infile="rawdata/{smp}.sra" 
+    output: outfile="rawdata/{smp}.fastq"
+    message: """ The data format conversion."""
+    shell: """                                                                                                                                                                                        
+            fastq-dump --split-3 {input.infile}                                                                                                                                                                                                                                                                    
+            """
+
+rule fastqc:
+    input:  infile="rawdata/{smp}.fastq"
+    output: outfile="rawdata/{smp}.fastq_fastqc.zip"
+    message: """ Quality check of raw data with Fastqc."""
+    shell: """                                                                                                                                                                                        
+            fastqc -f fastq {input.infile}                                                                                                                                                                                                                                                                                    
+            """
+
+rule trimming:
+    input:  infile="rawdata/{smp}.fastq"
+    output: outfile="rawdata/trimmed/{smp}_trimmed.fastq", 
+    message: """ Trimming."""
+    shell: """
+            mkdir trimmed
+            trim_galore --illumina --stringency 13 -o trimmed --clip_R1 3 --three_prime_clip_R1 2 {input.infile}                                                                             
+            """
+rule building index:
+    input: fa=GENOME 
+    output:
+        fa="TAIR10.fa",
+        index_1="TAIR10.1.bt2",
+        index_2="TAIR10.2.bt2",
+        index_3="TAIR10.3.bt2",
+        index_4="TAIR10.4.bt2",
+        index_5="TAIR10.rev.1.bt2",
+        index_6="TAIR10.rev.2.bt2"
+    message: """ bowtie2_build """
+    shell: """
+        bowtie2-build {input.fa} TAIR10
+        mkdir INDEX
+        mv *bt2 INDEX
+        cp TAIR10.fa INDEX
+    """
+
+rule tophat:
+    input:infile="rawdata/trimmed/{smp}_trimmed.fastq", 
+    params: gff=GFF, index=INDEX
+    output: "rawdata/bam/{smp}.bam"
+    shell: """
+        mkdir -p rawdata/tophat/{wildcards.rawdata}
+        tophat2                                         \
+                        -o rawdata/tophat/{wildcards.rawdata}    \
+                        -g 1                                    \
+                        -G {params.gff}                          \
+                        -x 1                                    \
+                        -p 5                                    \
+                        {params.index}                             \
+                        {input.infile}
+        cd rawdata/tophat/{wildcards.rawdata}
+        mv accepted_hits.bam ../../bam/{wildcards.smp}.bam
+        """
+rule htseq-count:
+    input:bam="rawdata/bam/{smp}.bam"
+    params: gff=GFF
+    output: "rawdata/counts/{smp}.count
+    shell:"""
+        mkdir -p rawdata/counts
+        htseq-count -f bam {input.bam} {params.gff} > {smp}.count
+        mv {smp}.count ../counts
+        """
+
+rule combine-count-file:
+    input:count=expand("rawdata/counts/{smp}.count", smp=SAMPLES)
+    output:outcombine=rawdata/counts/combine.count
+    R("""colnames(input.count[0])<-c("gene","count")
+         colnames(input.count[1])<-c("gene","count")
+         combine=merge(input.count[0],input.count[1],by="gene")
+         write.table(as.data.frame(combine),file=combine.count,sep="\t",quote = FALSE,col.names=TRUE)
+      """)
+    
+rule edgeR:
+    input：gene_martix=rawdata/counts/combine.count
+    output:diff=rawdata/counts/diffgene.txt
+    R("""source("http://bioconductor.org/biocLite.R")
+         biocLite("edgeR")
+         library("limma")
+         library("edgeR")
+         rawdata = read.table(input.gene_martix,header=TRUE,stringsAsFactors=FALSE,sep="\t",quote="")
+         y<-DGEList(counts=rawdata[,2:3],genes=rawdata[,1])
+         y<-calcNormFactors(y)
+         y <- estimateCommonDisp(y)
+         y <- estimateTagwiseDisp(y)
+         fit <- glmQLFit(y,design)
+         qlf <- glmQLFTest(fit,coef=2)
+         diffgene<-topTags(qlf,n=100)
+         write.table(as.data.frame(diffgene),file=diffgene.txt,sep="\t",quote = FALSE,row.names = TRUE,col.names=TRUE)        
+      """)
