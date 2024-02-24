@@ -1,5 +1,4 @@
-# python_find_dmr
-
+Find differentially methylated regions using python
 
 - 这些脚本是用来求拟南芥野生型和突变体差异甲基化区域的。
 
